@@ -11,14 +11,24 @@ module DelayedPaperclip
       @options ||= {
         :background_job_class => detect_background_task,
         :url_with_processing  => true,
-        :processing_image_url => nil
+        :processing_image_url => nil,
+        :processor => nil
       }
     end
 
     def detect_background_task
-      return DelayedPaperclip::Jobs::DelayedJob if defined? ::Delayed::Job
-      return DelayedPaperclip::Jobs::Resque     if defined? ::Resque
-      return DelayedPaperclip::Jobs::Sidekiq    if defined? ::Sidekiq
+      case @optionsp[:proccessor]
+      when :sidekiq
+        return DelayedPaperclip::Jobs::Sidekiq
+      when :delayed_job
+        return DelayedPaperclip::Jobs::DelayedJob
+      when :resque 
+        return DelayedPaperclip::Jobs::Resque
+      else
+        return DelayedPaperclip::Jobs::DelayedJob if defined? ::Delayed::Job
+        return DelayedPaperclip::Jobs::Resque     if defined? ::Resque
+        return DelayedPaperclip::Jobs::Sidekiq    if defined? ::Sidekiq
+      end
     end
 
     def processor
